@@ -34,12 +34,12 @@ node_templates:
   test-custom-module:
     type: cloudify.nodes.ansible.Playbook
     properties:
-      # change the default ansible_playbook_executable
+      # change the default ansible_playbook_executable if needed
       ansible_playbook_executable_path: /usr/bin/ansible-playbook
       ansible_env_vars:
         ANSIBLE_HOST_KEY_CHECKING: "False"
         ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED: "False"
-        # change default python interpreter
+        # change default python interpreter if needed
         ANSIBLE_PYTHON_INTERPRETER: "/usr/bin/python"
         # added path to the custom module that I want to use in the playbook
         ANSIBLE_LIBRARY: { get_input: custom_module_location }
