@@ -1,0 +1,33 @@
+- name: Testing Custom Module
+  hosts: all
+  tasks:
+  - name: first case test
+    custom_diff:
+      source: "cloudify"
+      target: "Cl0udify"
+      source_type: string
+      target_type: string
+    register: test_out
+  - name: dump first test output
+    debug:
+      msg: '{{ test_out }}'
+  - name: second case test
+    custom_diff:
+      source: "/bin/bash"
+      target: "which bash"
+      source_type: string
+      target_type: command
+    register: test_out
+  - name: dump second test output
+    debug:
+      msg: '{{ test_out }}'
+  - name: third case test
+    custom_diff:
+      source: "/etc/hostname"
+      target: "hostname"
+      source_type: file
+      target_type: command
+    register: test_out
+  - name: dump third test output
+    debug:
+      msg: '{{ test_out }}'

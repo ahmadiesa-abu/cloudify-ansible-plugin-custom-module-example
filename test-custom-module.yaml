@@ -1,0 +1,63 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://cloudify.co/spec/cloudify/5.0.0/types.yaml
+  - plugin:cloudify-ansible-plugin
+
+inputs:
+
+  server_ip:
+    description: >
+      Server to execute the playbook against.
+    default: ''
+
+  agent_user:
+    description: >
+      The username of the agent running on the instance created from the image.
+    default: centos
+
+  custom_module_location:
+    description: >
+      Path to the custom module used in Ansible playbook
+    default: ''
+
+node_templates:
+
+  vm:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: { get_input: server_ip }
+      agent_config:
+        user: { get_input: agent_user }
+        key: { get_secret: agent_key_private }
+
+  test-custom-module:
+    type: cloudify.nodes.ansible.Playbook
+    properties:
+      # change the default ansible_playbook_executable
+      ansible_playbook_path: /usr/bin/ansible-playbook
+      ansible_env_vars:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+        ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED: "False"
+        # change default python interpreter
+        ANSIBLE_PYTHON_INTERPRETER: "/usr/bin/python"
+        # added path to the custom module that I want to use in the playbook
+        ANSIBLE_LIBRARY: { get_input: custom_module_location }
+      playbook_path: test/playbook.yaml
+      # save_playbook: true
+    relationships:
+      - type: cloudify.ansible.relationships.run_on_host
+        target: vm
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            establish:
+              inputs:
+                sources:
+                  vms:
+                    hosts:
+                      vm:
+                        ansible_host: { get_input: server_ip }
+                        ansible_user: { get_input: agent_user }
+                        ansible_ssh_private_key_file: { get_secret: agent_key_private }
+                        ansible_become: True
+                        ansible_ssh_common_args: -o StrictHostKeyChecking=no
